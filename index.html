@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SafeTrack | Shipment Visibility</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
+<style>
+:root{--ink:#111827;--muted:#64748b;--line:#e5e7eb;--blue:#2563eb;--green:#059669;--amber:#d97706;--red:#dc2626;--paper:#f8fafc}
+*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font:14px/1.45 Inter,system-ui,-apple-system,Segoe UI,sans-serif}button,input,select{font:inherit}button{cursor:pointer}
+.topbar{height:66px;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 22px;gap:12px}.brand{display:flex;align-items:center;gap:10px;font-weight:850;font-size:18px}.logo{display:grid;place-items:center;background:#111827;color:#fff;border-radius:11px;width:38px;height:38px;font-size:20px}.brand small{display:block;color:var(--muted);font-size:10px;letter-spacing:.13em;text-transform:uppercase}.live-badge{display:flex;align-items:center;gap:7px;border:1px solid #a7f3d0;background:#ecfdf5;color:#047857;border-radius:999px;padding:7px 11px;font-size:11px;font-weight:800}.green-dot{width:7px;height:7px;background:#10b981;border-radius:50%}
+.app{height:calc(100vh - 66px);min-height:600px;display:grid;grid-template-columns:365px minmax(0,1fr)}.sidebar{background:#fff;border-right:1px solid var(--line);overflow:auto;padding:17px;display:flex;flex-direction:column;gap:15px}.label{font-size:10px;letter-spacing:.12em;font-weight:850;color:var(--muted);text-transform:uppercase;margin-bottom:8px}.panel{background:#fff;border:1px solid var(--line);border-radius:14px;padding:13px}.order-head{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}.order-name{font-weight:850;font-size:15px}.tiny{font-size:11px;color:var(--muted)}.token{font:11px ui-monospace,monospace;color:#1d4ed8;margin:8px 0}.stage-pill{font-size:10px;font-weight:800;padding:5px 8px;border-radius:999px;background:#eff6ff;color:#1d4ed8;white-space:nowrap}.progress{display:flex;gap:0;margin:16px 0 6px}.step{flex:1;text-align:center;position:relative;font-size:9px;color:#94a3b8;padding-top:19px}.step:before{content:"";position:absolute;top:0;left:calc(50% - 6px);width:12px;height:12px;border-radius:50%;background:#cbd5e1;border:2px solid #fff;box-shadow:0 0 0 1px #cbd5e1;z-index:2}.step:not(:last-child):after{content:"";position:absolute;left:50%;top:5px;width:100%;height:2px;background:#e2e8f0}.step.done,.step.active{color:#1d4ed8;font-weight:800}.step.done:before,.step.active:before{background:#2563eb;box-shadow:0 0 0 1px #2563eb}.step.done:not(:last-child):after{background:#2563eb}.metrics{display:grid;grid-template-columns:1fr 1fr;gap:8px}.metric{padding:10px;border:1px solid var(--line);border-radius:10px;min-width:0}.metric .k{font-size:9px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase}.metric .v{font:750 13px ui-monospace,monospace;margin-top:4px;overflow-wrap:anywhere}.row{display:flex;align-items:center;justify-content:space-between;gap:8px}.btn{border:0;border-radius:10px;background:var(--ink);color:white;font-weight:800;padding:10px 12px;width:100%;margin-top:7px}.btn.blue{background:var(--blue)}.btn.light{background:white;color:var(--ink);border:1px solid #cbd5e1}.btn.red{background:var(--red)}.btn:disabled{opacity:.45;cursor:not-allowed}.select,.field{width:100%;padding:9px;border:1px solid #cbd5e1;border-radius:9px;background:#fff;margin-top:5px}.hub-list{display:grid;gap:7px}.hub{display:flex;gap:10px;align-items:center;padding:9px;border:1px solid var(--line);border-radius:10px}.hub-icon{width:30px;height:30px;display:grid;place-items:center;background:#eff6ff;color:#1d4ed8;border-radius:9px;flex:none}.hub strong{display:block;font-size:12px}.hub span{font-size:10px;color:var(--muted)}.log{background:#0b1220;color:#bae6fd;padding:10px;border-radius:10px;height:95px;overflow:auto;white-space:pre-wrap;font:10px/1.6 ui-monospace,monospace}.hint{font-size:10px;color:var(--muted);line-height:1.5;margin-top:8px}.map-panel{position:relative;min-width:0;min-height:0}#map{height:100%;width:100%;background:#dbeafe}.map-card{position:absolute;z-index:500;top:15px;left:15px;background:#fff;border:1px solid #e2e8f0;border-radius:12px;box-shadow:0 4px 18px #0f172a18;padding:12px 15px;max-width:min(330px,calc(100% - 30px))}.map-card strong{display:block;font-size:13px}.map-card span{font-size:11px;color:var(--muted)}.map-controls{position:absolute;z-index:500;right:15px;top:15px;display:flex;flex-direction:column;gap:7px}.map-controls button{background:#fff;color:#111827;border:1px solid #e2e8f0;border-radius:9px;padding:9px 11px;box-shadow:0 2px 9px #0f172a12;font-size:11px;font-weight:800}.vehicle-icon{width:34px;height:34px;display:grid;place-items:center;border:2px solid #fff;border-radius:50%;background:#2563eb;color:#fff;font-size:17px;box-shadow:0 2px 10px #0f172a55}.hub-marker{width:27px;height:27px;display:grid;place-items:center;border:2px solid #fff;border-radius:50%;background:#111827;color:#fff;font-size:12px;box-shadow:0 2px 7px #0f172a55}.leaflet-popup-content{font-family:inherit}.map-legend{position:absolute;z-index:500;bottom:20px;right:15px;background:#fff;border:1px solid var(--line);border-radius:10px;padding:10px 12px;box-shadow:0 2px 10px #0f172a12;font-size:10px;display:grid;gap:6px}.legend-item{display:flex;align-items:center;gap:7px}.legend-dot{width:9px;height:9px;border-radius:50%;background:#2563eb}.legend-square{width:9px;height:9px;border-radius:2px;background:#111827}.toast{position:absolute;z-index:600;bottom:20px;left:15px;background:#111827;color:#fff;padding:9px 12px;border-radius:9px;font-size:11px;max-width:calc(100% - 30px);display:none}
+@media(max-width:850px){.topbar{padding:0 12px}.app{height:auto;min-height:0;grid-template-columns:1fr}.map-panel{height:56vh;min-height:370px;order:0}.sidebar{order:1;overflow:visible}.map-card{top:10px;left:10px}.map-controls{top:10px;right:10px}.map-legend{bottom:10px;right:10px}}
+
+/* SafeTrack visual upgrade */
+:root{--ink:#0b1220;--muted:#64748b;--line:#dbe4ef;--blue:#2563eb;--green:#059669;--paper:#eef3f9}
+body{background:linear-gradient(135deg,#edf3fb 0%,#f8fafc 52%,#e9f0f8 100%)}
+.topbar{height:72px;padding:0 26px;background:rgba(255,255,255,.94);backdrop-filter:blur(18px);box-shadow:0 4px 24px #0f172a0a;position:relative;z-index:800}
+.logo{background:linear-gradient(145deg,#2563eb,#0f172a);box-shadow:0 7px 16px #2563eb35}
+.brand{letter-spacing:-.025em}.brand small{letter-spacing:.16em;margin-top:2px}
+.live-badge{box-shadow:0 3px 12px #10b98112}
+.green-dot{box-shadow:0 0 0 4px #10b98120;animation:pulse 1.8s infinite}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 3px #10b98120}50%{box-shadow:0 0 0 7px #10b98112}}
+.app{height:calc(100vh - 72px);grid-template-columns:390px minmax(0,1fr);gap:0}
+.sidebar{padding:20px;gap:16px;background:rgba(255,255,255,.94);box-shadow:8px 0 30px #0f172a06}
+.panel{box-shadow:0 5px 18px #0f172a05;border-color:#e4eaf2}
+.order-name{font-size:16px;letter-spacing:-.025em}
+.stage-pill{background:#eaf2ff;color:#1d4ed8;border:1px solid #d4e4ff}
+.metric{background:linear-gradient(180deg,#fff,#f9fbfe);transition:transform .2s,box-shadow .2s}
+.metric:hover{transform:translateY(-2px);box-shadow:0 7px 18px #0f172a0d}
+.metric .v{font-size:14px}
+.btn{box-shadow:0 4px 10px #0f172a0b;transition:transform .18s,box-shadow .18s,filter .18s}
+.btn:hover{transform:translateY(-1px);box-shadow:0 7px 16px #0f172a18;filter:brightness(1.03)}
+.btn.blue{background:linear-gradient(135deg,#3478f6,#1d4ed8)}
+.hub{background:linear-gradient(110deg,#fff,#fbfdff);transition:border-color .2s,transform .2s}
+.hub:hover{border-color:#93c5fd;transform:translateX(2px)}
+.hub-icon{box-shadow:inset 0 0 0 1px #dbeafe}
+.map-panel{background:#dce7f3}
+#map{background:linear-gradient(135deg,#dce8f5,#f1f6fc)}
+.map-card{top:18px;left:18px;border:1px solid #ffffffb8;box-shadow:0 12px 36px #0f172a18;backdrop-filter:blur(16px);padding:14px 17px}
+.map-card strong{font-size:14px;letter-spacing:-.015em}
+.map-card span{display:block;margin-top:3px}
+.map-controls button{border:1px solid #e2e8f0;box-shadow:0 5px 16px #0f172a12;transition:transform .18s}
+.map-controls button:hover{transform:translateY(-1px);border-color:#93c5fd}
+.vehicle-icon{width:42px;height:42px;border:3px solid white;background:linear-gradient(145deg,#3b82f6,#1d4ed8);font-size:19px;box-shadow:0 0 0 7px #2563eb24,0 8px 18px #0f172a40;animation:vehicleGlow 2.4s infinite}
+@keyframes vehicleGlow{0%,100%{box-shadow:0 0 0 5px #2563eb20,0 8px 18px #0f172a35}50%{box-shadow:0 0 0 10px #2563eb10,0 8px 22px #0f172a35}}
+.hub-marker{background:linear-gradient(145deg,#172554,#0f172a);width:30px;height:30px;box-shadow:0 0 0 5px #0f172a14,0 4px 10px #0f172a35}
+.map-legend{box-shadow:0 8px 24px #0f172a15;border-color:#ffffffb8;backdrop-filter:blur(12px)}
+.route-chip{display:inline-flex;align-items:center;gap:6px;margin-top:8px;padding:5px 8px;border-radius:7px;background:#eff6ff;color:#1d4ed8;font-size:10px;font-weight:800}
+.demo-ribbon{position:absolute;z-index:500;left:18px;bottom:18px;background:#111827eF;color:#fff;border:1px solid #ffffff25;border-radius:10px;padding:9px 12px;font-size:10px;box-shadow:0 8px 25px #0f172a25;max-width:calc(100% - 36px)}
+.demo-ribbon b{color:#93c5fd}
+.leaflet-control-attribution{font-size:9px!important}
+@media(max-width:850px){.topbar{height:66px;padding:0 13px}.app{height:auto;grid-template-columns:1fr}.map-panel{height:59vh;min-height:400px;order:0}.sidebar{padding:14px;order:1}.map-card{top:10px;left:10px}.map-controls{top:10px;right:10px}.demo-ribbon{left:10px;bottom:10px}.map-legend{bottom:54px;right:10px}}
+
+
+/* Professional product UI system */
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap');
+:root{--brand:#155eef;--brand-dark:#1047b7;--navy:#101828;--text:#182230;--muted:#667085;--border:#e4e7ec;--surface:#fff;--canvas:#f6f8fb;--success:#067647;--success-bg:#ecfdf3;--blue-bg:#eff8ff;--radius:14px;--shadow:0 1px 2px rgba(16,24,40,.04),0 4px 14px rgba(16,24,40,.035)}
+*{box-sizing:border-box}
+body{font-family:'DM Sans',Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--text);background:var(--canvas);letter-spacing:-.012em;font-size:13px}
+.topbar{height:68px;padding:0 clamp(16px,2.5vw,36px);background:#fff;border-bottom:1px solid var(--border);box-shadow:none;backdrop-filter:none}
+.logo{width:36px;height:36px;border-radius:10px;background:var(--navy);box-shadow:none;font-size:16px}
+.brand{font-family:Manrope,sans-serif;font-weight:800;font-size:17px;letter-spacing:-.045em;color:#101828}
+.brand small{font-family:'DM Sans',sans-serif;font-size:9px;letter-spacing:.15em;color:#667085;font-weight:700}
+.live-badge{background:var(--success-bg);border:1px solid #abefc6;color:var(--success);font-weight:700;border-radius:7px;padding:7px 10px;box-shadow:none}
+.green-dot{width:6px;height:6px;background:#12b76a;box-shadow:none;animation:none}
+.app{height:calc(100vh - 68px);grid-template-columns:minmax(340px,390px) minmax(0,1fr);gap:0}
+.sidebar{background:#fff;border-right:1px solid var(--border);padding:22px 20px;gap:16px;box-shadow:none;overflow:auto}
+.panel{border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px;background:#fff}
+.panel-head{margin-bottom:14px}
+.eyebrow,.tiny-label{font-size:10px;letter-spacing:.1em;text-transform:uppercase;font-weight:700;color:#667085}
+.order-name{font-family:Manrope,sans-serif;font-size:16px;letter-spacing:-.04em;color:#101828;font-weight:800}
+.stage-pill{background:#eff8ff;border:1px solid #b2ddff;color:#175cd3;border-radius:6px;font-size:9px;font-weight:800;letter-spacing:.06em;padding:5px 7px}
+.metric{border:1px solid #eaecf0;border-radius:10px;padding:11px 12px;background:#fff;box-shadow:none;transition:border-color .15s}
+.metric:hover{transform:none;box-shadow:none;border-color:#b2ccff}
+.metric .v{font-family:Manrope,sans-serif;font-size:15px;font-weight:800;color:#101828}
+.metric .k{font-size:10px;color:#667085}
+.btn{font-family:'DM Sans',sans-serif;font-weight:700;border-radius:8px;box-shadow:none;transition:background .15s,border-color .15s}
+.btn:hover{transform:none;box-shadow:none;filter:none}
+.btn.blue{background:var(--brand);border-color:var(--brand)}
+.btn.blue:hover{background:var(--brand-dark)}
+.btn:not(.blue){border:1px solid #d0d5dd;background:#fff;color:#344054}
+.btn:not(.blue):hover{background:#f9fafb;border-color:#98a2b3}
+.hub{border:1px solid #eaecf0;border-radius:10px;background:#fff;padding:10px 11px;box-shadow:none;transition:border-color .15s}
+.hub:hover{transform:none;border-color:#b2ccff}
+.hub-icon{border-radius:8px;background:#f2f4f7;box-shadow:none}
+.map-panel{background:#e9eff6}
+.map-card{top:18px;left:18px;padding:14px 16px;border:1px solid #eaecf0;border-radius:12px;background:rgba(255,255,255,.96);box-shadow:0 8px 28px rgba(16,24,40,.1);backdrop-filter:blur(10px)}
+.map-card strong{font-family:Manrope,sans-serif;font-size:13px;font-weight:800;color:#101828;letter-spacing:-.03em}
+.map-card span{font-size:11px;color:#667085}
+.map-controls button{border-radius:9px;border:1px solid #e4e7ec;background:#fff;box-shadow:0 4px 12px #10182812}
+.map-controls button:hover{transform:none;border-color:#84adff}
+.vehicle-icon{width:38px;height:38px;border:3px solid #fff;background:var(--brand);font-size:17px;box-shadow:0 0 0 4px #155eef1c,0 4px 10px #10182830;animation:none;border-radius:50%;display:flex;align-items:center;justify-content:center}
+.hub-marker{background:#101828;border:2px solid white;width:26px;height:26px;border-radius:8px;box-shadow:0 2px 8px #10182830;font-size:10px}
+.map-legend{border:1px solid #eaecf0;border-radius:10px;background:rgba(255,255,255,.96);box-shadow:0 6px 20px #10182812;backdrop-filter:blur(10px)}
+.demo-ribbon{border-radius:9px;background:rgba(16,24,40,.94);font-size:10px;letter-spacing:0;box-shadow:0 6px 20px #10182818}
+.demo-ribbon b{color:#b2ccff}
+.route-chip{border-radius:6px;background:#eff8ff;color:#175cd3;font-weight:700}
+.step{font-size:10px}
+.step.active{color:#175cd3}
+.step.done{color:#067647}
+.leaflet-popup-content-wrapper{border-radius:10px;box-shadow:0 6px 20px #1018281a}
+.leaflet-popup-content{font-family:'DM Sans',sans-serif;font-size:12px;line-height:1.5}
+.leaflet-control-zoom a{color:#344054!important}
+#log{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:10px;line-height:1.65;background:#101828;color:#d0d5dd;border-radius:8px;padding:10px}
+select,input{font:inherit}
+@media(max-width:850px){.topbar{height:62px;padding:0 14px}.app{height:auto;grid-template-columns:1fr}.map-panel{height:54vh;min-height:370px;order:0}.sidebar{padding:14px;order:1;border-right:0}.map-card{top:10px;left:10px}.map-controls{top:10px;right:10px}.demo-ribbon{left:10px;bottom:10px}.map-legend{bottom:54px;right:10px}}
+
+
+/* Premium dark logistics console */
+:root{color-scheme:dark;--brand:#5b8cff;--brand-dark:#3f72e8;--navy:#080b12;--text:#edf2fa;--muted:#98a6bb;--border:#252e3d;--surface:#111722;--canvas:#080b12;--success:#32d583;--success-bg:#102a22;--blue-bg:#111f38;--radius:14px;--shadow:0 8px 24px rgba(0,0,0,.22)}
+html,body{background:#080b12!important;color:#edf2fa!important}
+body{font-family:'DM Sans',Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;letter-spacing:-.012em}
+.topbar{background:rgba(10,14,22,.96)!important;border-bottom:1px solid #252e3d!important;box-shadow:0 8px 28px #0003!important}
+.logo{background:linear-gradient(145deg,#5b8cff,#2854c5)!important;color:white!important;box-shadow:0 5px 18px #3d72ed30!important}
+.brand{color:#f5f8ff!important}.brand small{color:#8492a8!important}
+.live-badge{background:#102a22!important;border-color:#185b43!important;color:#6ce9a6!important}
+.app{background:#080b12!important}
+.sidebar{background:#0d121c!important;border-right:1px solid #252e3d!important;box-shadow:none!important}
+.panel{background:#111722!important;border-color:#252e3d!important;box-shadow:0 8px 24px #0002!important;color:#edf2fa!important}
+.order-name,.metric .v,.map-card strong{color:#f3f6fc!important}
+.eyebrow,.tiny-label,.metric .k,.map-card span{color:#98a6bb!important}
+.stage-pill{background:#132747!important;border-color:#244a83!important;color:#9ec5ff!important}
+.metric{background:linear-gradient(145deg,#141c29,#101621)!important;border-color:#293448!important}
+.metric:hover{border-color:#3c5f99!important}
+.btn.blue{background:linear-gradient(135deg,#5b8cff,#3567db)!important;border-color:#5b8cff!important;color:white!important}
+.btn:not(.blue){background:#161f2c!important;border-color:#303b4d!important;color:#dce5f2!important}
+.btn:not(.blue):hover{background:#1c293b!important;border-color:#4b5e7b!important}
+.hub{background:#121a26!important;border-color:#283346!important;color:#edf2fa!important}
+.hub:hover{border-color:#496ca8!important}
+.hub-icon{background:#1b2636!important;color:#9ec5ff!important}
+.map-panel{background:#0b111a!important}
+#map{background:#0b111a!important}
+.map-card{background:rgba(15,22,33,.94)!important;border-color:#2c394c!important;box-shadow:0 12px 32px #0005!important;color:#edf2fa!important}
+.map-controls button{background:#131b28!important;color:#e7edf7!important;border-color:#2b3749!important}
+.map-controls button:hover{border-color:#5b8cff!important}
+.vehicle-icon{background:linear-gradient(145deg,#6b9bff,#2c60d4)!important;border-color:#eaf1ff!important;box-shadow:0 0 0 5px #5b8cff26,0 7px 18px #0008!important}
+.hub-marker{background:#27354a!important;border-color:#e0eaff!important;color:#fff!important}
+.map-legend{background:rgba(15,22,33,.94)!important;border-color:#2c394c!important;color:#dbe5f3!important;box-shadow:0 8px 24px #0005!important}
+.demo-ribbon{background:rgba(15,22,33,.96)!important;border:1px solid #2c394c!important;color:#dbe5f3!important}
+.demo-ribbon b{color:#9ec5ff!important}
+.route-chip{background:#142744!important;color:#9ec5ff!important}
+#log{background:#070a10!important;border:1px solid #252e3d!important;color:#b8c6da!important}
+.step{color:#748198!important}.step.active{color:#9ec5ff!important}.step.done{color:#6ce9a6!important}
+.leaflet-popup-content-wrapper,.leaflet-popup-tip{background:#131c29!important;color:#edf2fa!important}
+.leaflet-popup-content{color:#edf2fa!important}
+.leaflet-bar a,.leaflet-bar a:hover{background:#131b28!important;color:#e7edf7!important;border-color:#2b3749!important}
+.leaflet-control-attribution{background:rgba(8,11,18,.8)!important;color:#8b9ab0!important}
+.leaflet-control-attribution a{color:#9ec5ff!important}
+select,input,textarea{background:#111a27!important;color:#edf2fa!important;border:1px solid #303b4d!important}
+option{background:#111a27;color:#edf2fa}
+@media(max-width:850px){.topbar{background:rgba(10,14,22,.98)!important}.sidebar{border-top:1px solid #252e3d!important}.map-card{background:rgba(15,22,33,.96)!important}}
+
+
+#offline-map{display:none;position:absolute;inset:0;z-index:450;background:#08111f;overflow:hidden}
+#offline-map svg{width:100%;height:100%;display:block}
+.offline-note{position:absolute;left:14px;bottom:14px;background:#0f172add;border:1px solid #334155;color:#cbd5e1;border-radius:9px;padding:8px 11px;font-size:11px;max-width:80%}
+</style>
+<meta name="description" content="SafeTrack shipment visibility prototype with a multi-hub delivery journey ending at Srikakulam RTC Complex."><meta name="theme-color" content="#ffffff"></head>
+<body>
+<header class="topbar">
+  <div class="brand"><div class="logo">📦</div><div>SafeTrack<small>PRIVATE LOGISTICS NETWORK</small></div></div>
+  <div class="live-badge"><span class="green-dot"></span><span id="privacy-status">PRIVATE SESSION · DEMO</span></div>
+</header>
+<div class="app">
+<aside class="sidebar">
+  <section>
+    <div class="label">Customer tracking portal</div>
+    <div class="panel">
+      <div class="order-head"><div><div class="order-name">Wireless Headphones Pro</div><div class="tiny">Order #ST-2048-771</div></div><span class="stage-pill" id="stage-pill">IN TRANSIT</span></div>
+      <div class="token">SESSION TOKEN · ST-7X••••91</div>
+      <div class="tiny">Estimated delivery · Today, 6:30 PM</div>
+      <div class="progress" id="progress">
+        <div class="step done">Ordered</div><div class="step done">Shipped</div><div class="step active">In transit</div><div class="step">Out for delivery</div><div class="step">Delivered</div>
+      </div>
+      <div class="row" style="margin-top:12px"><span class="tiny">Current logistics hub</span><strong id="current-hub" style="font-size:11px">Hyderabad Hub</strong></div>
+      <div class="row" style="margin-top:7px"><span class="tiny">Assigned vehicle</span><strong id="vehicle-name" style="font-size:11px">TRK-HYD-042</strong></div>
+    </div>
+  </section>
+  <section>
+    <div class="label">Shipment telemetry</div>
+    <div class="metrics">
+      <div class="metric"><div class="k">Latitude</div><div class="v" id="lat">17.3850</div></div>
+      <div class="metric"><div class="k">Longitude</div><div class="v" id="lng">78.4867</div></div>
+      <div class="metric"><div class="k">Vehicle speed</div><div class="v" id="speed">64 km/h</div></div>
+      <div class="metric"><div class="k">Distance remaining</div><div class="v" id="remaining">— km</div></div>
+    </div>
+    <div class="hint">Prototype mode: vehicle movement is simulated along road geometry when the public router is available. Coordinates are not live GPS.</div>
+  </section>
+  <section>
+    <div class="label">Journey control</div>
+    <button class="btn blue" id="start-btn">▶ Start shipment journey</button>
+    <button class="btn light" id="pause-btn">Ⅱ Pause journey</button>
+    <button class="btn light" id="reset-btn">↺ Reset demo</button>
+    <label class="tiny" for="speed-select" style="display:block;margin-top:12px">Demo playback speed</label>
+    <select class="select" id="speed-select"><option value="1800">Cinematic · Slow</option><option value="1000" selected>Normal</option><option value="450">Fast-forward</option></select>
+  </section>
+  <section>
+    <div class="label">Vehicle handover simulation</div>
+    <div class="panel">
+      <div class="tiny">At hub arrival, assign the next vehicle. The map marker and vehicle ID will update.</div>
+      <button class="btn" id="handover-btn">⇄ Simulate vehicle handover</button>
+      <button class="btn light" id="delivered-btn">✓ Mark as delivered</button>
+    </div>
+  </section>
+  <section>
+    <div class="label">Logistics network · demo hubs</div>
+    <div class="hub-list">
+      <div class="hub"><div class="hub-icon">🏢</div><div><strong>Delhi National Hub</strong><span>Origin · Dispatch centre</span></div></div>
+      <div class="hub"><div class="hub-icon">🔁</div><div><strong>Nagpur Transit Hub</strong><span>Regional sorting & vehicle transfer</span></div></div>
+      <div class="hub"><div class="hub-icon">🔁</div><div><strong>Hyderabad Regional Hub</strong><span>South India distribution</span></div></div>
+      <div class="hub"><div class="hub-icon">🔁</div><div><strong>Visakhapatnam Transit Hub</strong><span>Regional transfer · Route to Srikakulam</span></div></div>
+      <div class="hub"><div class="hub-icon">📍</div><div><strong>Srikakulam Final Delivery Hub</strong><span>Final hub · Out-for-delivery dispatch</span></div></div>
+    </div>
+  </section>
+  <section>
+    <div class="label">Private event log</div>
+    <div class="log" id="log">[SYSTEM] SafeTrack private demo initialized.
+[SECURITY] Customer view isolated (prototype only).
+[ROUTE] Loading Delhi → Nagpur → Hyderabad → Visakhapatnam → Srikakulam → Srikakulam.</div>
+    <p class="hint">Production privacy needs server-side token validation, expiry, access control and deletion of location data. A front-end-only demo cannot enforce secure private access.</p>
+  </section>
+</aside>
+<main class="map-panel">
+  <div id="map"></div>
+  <div id="offline-map" aria-label="Offline schematic route map">
+<svg viewBox="0 0 1000 600" role="img" aria-label="Schematic India shipment route from Delhi to Srikakulam RTC Complex" preserveAspectRatio="xMidYMid meet">
+<defs><pattern id="grid" width="44" height="44" patternUnits="userSpaceOnUse"><path d="M 44 0 L 0 0 0 44" fill="none" stroke="#17263a" stroke-width="1"/></pattern><linearGradient id="land" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#172f43"/><stop offset="1" stop-color="#102333"/></linearGradient><filter id="glow"><feGaussianBlur stdDeviation="5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
+<rect width="1000" height="600" fill="#08111f"/><rect width="1000" height="600" fill="url(#grid)"/>
+<!-- stylized, non-navigational outline of India -->
+<path d="M305 76 L370 60 425 80 475 76 515 106 557 128 581 165 624 194 640 231 677 253 687 287 664 316 648 352 620 374 607 415 580 451 562 492 536 535 510 516 494 476 474 438 456 402 428 370 411 335 382 307 367 270 346 241 337 203 316 177 298 140Z" fill="url(#land)" stroke="#2e5368" stroke-width="3"/>
+<path d="M330 150 Q420 190 490 175 T610 245 M365 240 Q445 270 500 315 T625 345 M410 110 Q455 200 470 270 T535 440 M350 180 Q470 220 570 190" fill="none" stroke="#27465a" stroke-width="2" stroke-dasharray="7 8"/>
+<text x="425" y="290" fill="#50738a" font-size="34" font-weight="700" letter-spacing="8" opacity=".55">INDIA</text>
+<path d="M410 118 Q430 174 478 255 T455 342 Q535 335 638 357 L673 334" fill="none" stroke="#102b4d" stroke-width="13" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M410 118 Q430 174 478 255 T455 342 Q535 335 638 357 L673 334" fill="none" stroke="#3b82f6" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="10 7" filter="url(#glow)"/>
+<g font-family="Arial,sans-serif" font-size="15" fill="#e2e8f0" font-weight="700"><circle cx="410" cy="118" r="10" fill="#34d399" stroke="#d1fae5" stroke-width="3"/><text x="428" y="110">DELHI</text><circle cx="478" cy="255" r="9" fill="#f59e0b" stroke="#ffedd5" stroke-width="3"/><text x="493" y="250">NAGPUR</text><circle cx="455" cy="342" r="9" fill="#f59e0b" stroke="#ffedd5" stroke-width="3"/><text x="400" y="370">HYDERABAD</text><circle cx="638" cy="357" r="9" fill="#f59e0b" stroke="#ffedd5" stroke-width="3"/><text x="650" y="381">VISAKHAPATNAM</text><circle cx="673" cy="334" r="12" fill="#2563eb" stroke="#bfdbfe" stroke-width="3"/><text x="690" y="326">SRIKAKULAM RTC</text><text x="690" y="345" font-size="12" fill="#93c5fd">COMPLEX · DESTINATION</text></g>
+<g transform="translate(548 346)"><circle r="19" fill="#2563eb" opacity=".22"/><text x="-10" y="8" font-size="25">🚚</text></g>
+<text x="24" y="38" fill="#93c5fd" font-size="14" font-weight="700" letter-spacing="2">SAFETRACK · OFFLINE ROUTE VIEW</text>
+<text x="24" y="61" fill="#64748b" font-size="12">Delhi → Nagpur → Hyderabad → Visakhapatnam → Srikakulam</text>
+</svg><div class="offline-note">Offline schematic map shown because online map tiles were blocked. This route illustration needs no API key; it is not a live street map.</div></div>
+  <div class="map-card"><strong id="map-title">Delhi → Srikakulam</strong><span id="map-subtitle">Multi-hub shipment · simulated vehicle movement</span></div>
+  <div class="map-controls"><button id="fit-btn">⌖ FIT ROUTE</button><button id="focus-btn">🚚 FOLLOW VEHICLE</button></div>
+  <div class="map-legend"><div class="legend-item"><span class="legend-dot"></span>Assigned vehicle</div><div class="legend-item"><span class="legend-square"></span>Logistics hub</div><div class="legend-item"><span style="width:15px;border-top:3px solid #2563eb"></span>Travelled path</div></div><div class="demo-ribbon"><b>DEMO SIMULATION</b> · Road route may load from a public routing service; no real GPS is connected.</div>
+  <div class="toast" id="toast"></div>
+</main>
+</div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+<script>
+(() => {
+"use strict";
+const $ = id => document.getElementById(id);
+const hubs = [
+ {name:"Delhi National Hub",short:"Delhi",coords:[28.6139,77.2090],vehicle:"TRK-DLH-018"},
+ {name:"Nagpur Transit Hub",short:"Nagpur",coords:[21.1458,79.0882],vehicle:"TRK-NGP-031"},
+ {name:"Hyderabad Regional Hub",short:"Hyderabad",coords:[17.3850,78.4867],vehicle:"TRK-HYD-042"},
+ {name:"Visakhapatnam Transit Hub",short:"Visakhapatnam",coords:[17.6868,83.2185],vehicle:"TRK-VSKP-107"},
+ {name:"Srikakulam RTC Complex - Final Delivery Point",short:"Srikakulam RTC Complex",coords:[18.2967,83.8971],vehicle:"VAN-SKL-204"}
+];
+let map, vehicleMarker, routeLine, progressLine, routePoints=[], routeLeg=0, legProgress=0, timer=null, running=false, handovers=0, delivered=false;
+let legPaths=[], legLengths=[], totalDistance=0, routeLoaded=false, travelledPath=[], lastMileStarted=false, lastMileProgress=0;
+function log(msg){const el=$("log");el.textContent+="\n["+new Date().toLocaleTimeString()+"] "+msg;el.scrollTop=el.scrollHeight}
+function toast(msg){const el=$("toast");el.textContent=msg;el.style.display="block";clearTimeout(toast.timer);toast.timer=setTimeout(()=>el.style.display="none",2800)}
+function icon(html,cls,size,anchor){return L.divIcon({html:`<div class="${cls}">${html}</div>`,className:"",iconSize:size,iconAnchor:anchor})}
+function distanceKm(a,b){const r=Math.PI/180,dLat=(b[0]-a[0])*r,dLon=(b[1]-a[1])*r;const x=Math.sin(dLat/2)**2+Math.cos(a[0]*r)*Math.cos(b[0]*r)*Math.sin(dLon/2)**2;return 6371*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x))}
+function pathLength(path){let sum=0;for(let i=1;i<path.length;i++)sum+=distanceKm(path[i-1],path[i]);return sum}
+function pointAtFraction(path,fraction){
+ if(path.length<2)return path[0]||hubs[0].coords;
+ const lengths=[];let total=0;for(let i=1;i<path.length;i++){const d=distanceKm(path[i-1],path[i]);lengths.push(d);total+=d}
+ let target=Math.max(0,Math.min(1,fraction))*total;
+ for(let i=0;i<lengths.length;i++){if(target<=lengths[i]||i===lengths.length-1){const t=lengths[i]===0?0:target/lengths[i];return [path[i][0]+(path[i+1][0]-path[i][0])*t,path[i][1]+(path[i+1][1]-path[i][1])*t]}target-=lengths[i]}
+ return path[path.length-1]
+}
+function initMap(){
+ if(!window.L){$("map").innerHTML="<p style='padding:24px'>Map library failed to load. Check internet and refresh.</p>";log("ERROR: Map library failed to load.");return}
+ map=L.map("map",{zoomControl:true}).setView([22.5,80.2],5);
+ // Resilient basemap: if one public tile provider returns 403/blocked, automatically try another.
+ const tileProviders=[
+  {name:"Esri World Street Map",url:"https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}",attr:'Tiles &copy; <a href="https://www.esri.com/">Esri</a> — Sources: Esri, HERE, Garmin, OpenStreetMap contributors'},
+  {name:"OpenStreetMap",url:"https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",attr:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'},
+  {name:"CARTO Dark",url:"https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",attr:'&copy; OpenStreetMap contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'}
+ ];
+ let tileProviderIndex=0,tileErrors=0,tileLayer=null,tileSwitching=false;
+ function useTileProvider(index){
+  if(index>=tileProviders.length){
+   // Show a built-in schematic so the map area is never blank and no API key is needed.
+   const offline=$("offline-map"); if(offline) offline.style.display="block";
+   const panes=document.querySelectorAll("#map .leaflet-pane, #map .leaflet-control-container");
+   panes.forEach(el=>el.style.display="none");
+   log("MAP: Online tiles unavailable or requested an API key. Showing built-in offline schematic map; no API key required.");
+   toast("Online map blocked · showing offline map");
+   return;
+  }
+  tileProviderIndex=index;tileErrors=0;tileSwitching=false;
+  if(tileLayer)map.removeLayer(tileLayer);
+  const provider=tileProviders[index];
+  tileLayer=L.tileLayer(provider.url,{maxZoom:19,subdomains:"abcd",attribution:provider.attr,crossOrigin:true,updateWhenIdle:true,keepBuffer:3});
+  tileLayer.on("tileerror",()=>{
+   tileErrors++;
+   if(tileErrors>=2&&!tileSwitching){tileSwitching=true;log("MAP: "+provider.name+" tiles blocked or require credentials. Trying backup map provider…");useTileProvider(index+1);}
+  });
+  tileLayer.on("load",()=>{if(index===tileProviderIndex){log("MAP: Basemap loaded from "+provider.name+".");}});
+  tileLayer.addTo(map);
+ }
+ useTileProvider(0);
+ hubs.forEach((h,i)=>L.marker(h.coords,{icon:icon(i+1,"hub-marker",[30,30],[15,15])}).addTo(map).bindPopup(`<b>${h.name}</b><br>${i===0?"Origin":i===hubs.length-1?"Destination":"Transit / vehicle handover hub"}`));
+ vehicleMarker=L.marker(hubs[0].coords,{icon:icon("🚚","vehicle-icon",[42,42],[21,21]),zIndexOffset:1000}).addTo(map).bindPopup("Assigned demo vehicle");
+ legPaths=hubs.slice(0,-1).map((h,i)=>[h.coords,hubs[i+1].coords]);
+ legLengths=legPaths.map(pathLength);
+ routePoints=legPaths.flatMap((p,i)=>i?p.slice(1):p);
+ routeLine=L.polyline(routePoints,{color:"#94a3b8",weight:4,dashArray:"7 8",opacity:.85}).addTo(map);
+ progressLine=L.polyline([routePoints[0]],{color:"#2563eb",weight:5,opacity:.98,lineCap:"round"}).addTo(map);
+ fitRoute();drawTelemetry();
+ log("MAP: Loading basemap with automatic backup providers. Loading realistic road geometry…");
+ loadRoadRoutes();
+}
+async function loadRoadRoutes(){
+ try{
+  const roads=[],lengths=[];
+  for(let i=0;i<hubs.length-1;i++){
+   const a=hubs[i].coords,b=hubs[i+1].coords;
+   const url=`https://router.project-osrm.org/route/v1/driving/${a[1]},${a[0]};${b[1]},${b[0]}?overview=full&geometries=geojson&steps=false`;
+   const res=await fetch(url);if(!res.ok)throw new Error("routing service unavailable");
+   const data=await res.json();if(data.code!=="Ok"||!data.routes?.[0]?.geometry?.coordinates?.length)throw new Error("no road geometry");
+   const path=data.routes[0].geometry.coordinates.map(c=>[c[1],c[0]]);
+   roads.push(path);lengths.push(data.routes[0].distance/1000);
+  }
+  legPaths=roads;legLengths=lengths;routePoints=roads.flatMap((p,i)=>i?p.slice(1):p);
+  totalDistance=lengths.reduce((a,b)=>a+b,0);
+  routeLine.setLatLngs(routePoints);progressLine.setLatLngs([hubs[0].coords]);routeLoaded=true;fitRoute();
+  $("map-subtitle").textContent=`Road-following demo route · ${Math.round(totalDistance).toLocaleString()} km estimated`;
+  log(`ROUTE: Loaded road-following geometry from public OSRM demo router (${Math.round(totalDistance)} km approx).`);
+  toast("Road route loaded · realistic route mode");
+  drawTelemetry();
+ }catch(err){
+  totalDistance=legLengths.reduce((a,b)=>a+b,0);
+  $("map-subtitle").textContent="Fallback route · simulated movement between hubs";
+  log("ROUTE: Public road-routing service unavailable. Using straight-line fallback; movement remains simulated.");
+ }
+}
+function fitRoute(){if(map&&routeLine)map.fitBounds(routeLine.getBounds(),{padding:[55,55]})}
+function drawTelemetry(){
+ const p=vehicleMarker?.getLatLng();if(!p)return;
+ $("lat").textContent=p.lat.toFixed(4);$("lng").textContent=p.lng.toFixed(4);
+ const target=hubs[Math.min(routeLeg+1,hubs.length-1)].coords;
+ const remaining=legProgress<1?distanceKm([p.lat,p.lng],target):0;
+ $("remaining").textContent=(routeLoaded?Math.max(0,legLengths.slice(routeLeg+1).reduce((a,b)=>a+b,0)+remaining):remaining).toFixed(0)+" km";
+ $("speed").textContent=running?(routeLoaded?"72 km/h":"64 km/h"):"— km/h";
+}
+function setProgress(index){
+ const steps=[...document.querySelectorAll(".step")];steps.forEach((s,i)=>{s.classList.toggle("done",i<index);s.classList.toggle("active",i===index)});
+ const labels=["ORDERED","SHIPPED","IN TRANSIT","OUT FOR DELIVERY","DELIVERED"];
+ $("stage-pill").textContent=labels[Math.min(index,4)];
+}
+function updateHub(leg){
+ const current=hubs[Math.min(leg,hubs.length-1)];
+ const next=hubs[Math.min(leg+1,hubs.length-1)];
+ $("current-hub").textContent=current.short+" Hub";$("vehicle-name").textContent=current.vehicle;
+ $("map-title").textContent=current.short+" → "+next.short;
+ $("map-subtitle").textContent=routeLoaded?`Road route · Leg ${Math.min(leg+1,hubs.length-1)} of ${hubs.length-1}`:`Leg ${Math.min(leg+1,hubs.length-1)} of ${hubs.length-1} · simulated route`;
+}
+function start(){if(!map||delivered||running)return;
+ if(routeLeg>=hubs.length-1&&!lastMileStarted){lastMileStarted=true;lastMileProgress=0;log("LAST MILE: Dispatching assigned delivery van from Srikakulam final hub to the demo customer location.");toast("Out for delivery · Srikakulam");}
+ running=true;$("start-btn").textContent=lastMileStarted?"▶ Last-mile delivery running":"▶ Journey running";$("speed").textContent="32 km/h";$("privacy-status").textContent="PRIVATE SESSION · DEMO LIVE";timer=setInterval(tick,Number($("speed-select").value));log("JOURNEY: Started simulated movement along "+(routeLoaded?"road geometry":"fallback hub route")+".");toast(lastMileStarted?"Last-mile delivery started":"Demo journey started")}
+function pause(){running=false;if(timer)clearInterval(timer);timer=null;$("start-btn").textContent="▶ Resume shipment journey";$("speed").textContent="— km/h";log("JOURNEY: Paused.")}
+function tick(){
+ if(delivered)return;
+ if(lastMileStarted){
+  lastMileProgress=Math.min(1,lastMileProgress+0.035);
+  const startPoint=hubs[hubs.length-1].coords, customerPoint=[18.2967,83.8971];
+  const p=[startPoint[0]+(customerPoint[0]-startPoint[0])*lastMileProgress,startPoint[1]+(customerPoint[1]-startPoint[1])*lastMileProgress];
+  vehicleMarker.setLatLng(p);travelledPath.push(p);progressLine.setLatLngs(travelledPath);
+  $("map-title").textContent="Srikakulam · Out for delivery";$("map-subtitle").textContent="Last-mile demo · assigned delivery van";
+  $("current-hub").textContent="Srikakulam RTC Complex · Last mile";$("remaining").textContent=distanceKm(p,customerPoint).toFixed(1)+" km";
+  map.panTo(p,{animate:true,duration:.25});drawTelemetry();
+  if(lastMileProgress>=1){pause();$("start-btn").textContent="✓ Arrived near customer";$("stage-pill").textContent="OUT FOR DELIVERY";log("LAST MILE: Demo vehicle reached the customer-area marker. Press Mark as delivered to complete the demo.");toast("At customer location · confirm delivery");}
+  return;
+ }
+ legProgress=Math.min(1,legProgress+0.012);
+ const path=legPaths[routeLeg]||[hubs[routeLeg].coords,hubs[routeLeg+1].coords];
+ const p=pointAtFraction(path,legProgress);
+ vehicleMarker.setLatLng(p);
+ travelledPath.push(p);if(travelledPath.length>220)travelledPath.shift();
+ progressLine.setLatLngs(travelledPath);
+ if(legProgress>=1){
+  const h=hubs[routeLeg+1];vehicleMarker.setLatLng(h.coords);routeLeg++;legProgress=0;travelledPath.push(h.coords);updateHub(routeLeg);
+  if(routeLeg===hubs.length-1){pause();setProgress(3);$("current-hub").textContent="Srikakulam RTC Complex";$("vehicle-name").textContent=hubs[routeLeg].vehicle;$("stage-pill").textContent="OUT FOR DELIVERY";$("start-btn").textContent="▶ Start last-mile delivery";$("map-title").textContent="Srikakulam RTC Complex · Final delivery point";$("map-subtitle").textContent="Arrived at final hub · ready for out-for-delivery dispatch";log("ARRIVAL: Reached Srikakulam RTC Complex final delivery point. Shipment status changed to OUT FOR DELIVERY.");toast("Arrived at Srikakulam RTC Complex · out for delivery");drawTelemetry();return}
+  handovers++;setProgress(2);$("privacy-status").textContent="PRIVATE SESSION · VEHICLE HANDOVER";
+  log(`HUB ARRIVAL: ${h.short}. Vehicle handover event simulated; next assigned vehicle ${hubs[routeLeg].vehicle}.`);
+  toast(`Arrived at ${h.short} · vehicle handover`);travelledPath=[h.coords];
+ }
+ map.panTo(p,{animate:true,duration:.25});drawTelemetry();
+}
+function handover(){
+ if(delivered){toast("Delivery is already completed.");return}
+ if(routeLeg===0&&legProgress<.15){toast("Start the journey and reach a hub before handover.");return}
+ handovers++;const vehicle=hubs[Math.min(routeLeg,hubs.length-1)].vehicle;
+ $("vehicle-name").textContent=vehicle;$("privacy-status").textContent="PRIVATE SESSION · DEMO TOKEN ROTATED";
+ log(`SECURITY DEMO: Vehicle assignment event #${handovers}; assigned vehicle ${vehicle}. No real token or backend is connected.`);
+ toast("Vehicle assignment updated · demo only");
+}
+function markDelivered(){
+ if(!lastMileStarted||lastMileProgress<1){toast("Complete the Srikakulam last-mile journey first.");return}
+ pause();delivered=true;setProgress(4);$("stage-pill").textContent="DELIVERED";$("current-hub").textContent="Delivered · Srikakulam RTC Complex RTC Complex";$("remaining").textContent="0 km";
+ $("privacy-status").textContent="SESSION ENDED · DEMO";$("map-title").textContent="Delivered · Srikakulam RTC Complex RTC Complex";$("map-subtitle").textContent="Final delivery confirmed at Srikakulam RTC Complex · demo only";$("start-btn").textContent="✓ Delivery complete";
+ if(vehicleMarker)map.removeLayer(vehicleMarker);if(progressLine)map.removeLayer(progressLine);
+ log("DELIVERED: Demo session ended. Vehicle marker removed from customer view.");toast("Delivered · tracking view ended");
+}
+function reset(){
+ pause();delivered=false;routeLeg=0;legProgress=0;handovers=0;lastMileStarted=false;lastMileProgress=0;travelledPath=[hubs[0].coords];
+ if(!map)return;
+ if(vehicleMarker)map.removeLayer(vehicleMarker);
+ vehicleMarker=L.marker(hubs[0].coords,{icon:icon("🚚","vehicle-icon",[42,42],[21,21]),zIndexOffset:1000}).addTo(map).bindPopup("Assigned demo vehicle");
+ progressLine.setLatLngs([hubs[0].coords]);setProgress(2);$("stage-pill").textContent="IN TRANSIT";$("privacy-status").textContent="PRIVATE SESSION · DEMO";$("current-hub").textContent="Delhi Hub";$("vehicle-name").textContent=hubs[0].vehicle;
+ $("map-title").textContent="Delhi → Nagpur";$("map-subtitle").textContent=routeLoaded?`Road-following demo route · ${Math.round(totalDistance).toLocaleString()} km approx`:"Loading route…";$("start-btn").textContent="▶ Start shipment journey";
+ $("start-btn").textContent="▶ Start shipment journey";$("remaining").textContent="— km";map.setView(hubs[0].coords,5);log("RESET: Demo shipment reset to Delhi origin.");drawTelemetry();
+}
+$("start-btn").addEventListener("click",start);$("pause-btn").addEventListener("click",pause);$("reset-btn").addEventListener("click",reset);$("handover-btn").addEventListener("click",handover);$("delivered-btn").addEventListener("click",markDelivered);$("fit-btn").addEventListener("click",fitRoute);$("focus-btn").addEventListener("click",()=>{if(vehicleMarker)map.setView(vehicleMarker.getLatLng(),7)});
+$("speed-select").addEventListener("change",()=>{if(running){pause();start()}});
+initMap();
+})();
+</script>
+</body>
+</html>

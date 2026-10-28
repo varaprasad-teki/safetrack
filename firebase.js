@@ -1,12 +1,8 @@
-// Import the functions you need from the SDKs you need
-import { initializeApp } from "firebase/app";
-import { getAnalytics } from "firebase/analytics";
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
+import { getAuth } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
+import { getFirestore } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 
-// Your web app's Firebase configuration
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
-const firebaseConfig = {
+export const firebaseConfig = {
   apiKey: "AIzaSyC-ShX8LvwzMBa2oletgHKVxr-CCzRkZyQ",
   authDomain: "safetrack-cb1f2.firebaseapp.com",
   projectId: "safetrack-cb1f2",
@@ -16,6 +12,12 @@ const firebaseConfig = {
   measurementId: "G-9WXSE5JFLL"
 };
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
+export const app = initializeApp(firebaseConfig);
+export const auth = getAuth(app);
+export const db = getFirestore(app);
+
+export const demoShipments = [
+  { phone: "9876543210", orderId: "ST-2048-771", awb: "AWB1234567", customer: "Ravi Kumar", status: "In Transit", location: "Hyderabad Hub" },
+  { phone: "9123456780", orderId: "ST-2050-101", awb: "AWB9876543", customer: "Ananya Sharma", status: "Out for Delivery", location: "Vijayawada Hub" },
+  { phone: "9988776655", orderId: "ST-3030-501", awb: "AWB4567891", customer: "Karthik Reddy", status: "Packed", location: "Chennai Hub" }
+];

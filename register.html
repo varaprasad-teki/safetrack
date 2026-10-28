@@ -4,91 +4,23 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>SafeTrack Register</title>
-  <style>
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: linear-gradient(135deg, #0f172a, #1d4ed8);
-      color: white;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
+  <script>
+    if (sessionStorage.getItem("adminAccess") !== "true") {
+      window.location.replace("login.html");
     }
-    .card {
-      width: min(480px, 90vw);
-      background: rgba(255,255,255,0.12);
-      border-radius: 18px;
-      padding: 30px;
-      box-shadow: 0 20px 40px rgba(0,0,0,0.2);
-    }
-    h1 { margin-top: 0; }
-    form { display: flex; flex-direction: column; gap: 12px; }
-    input {
-      padding: 12px 14px;
-      border: none;
-      border-radius: 10px;
-      font-size: 15px;
-    }
-    button {
-      padding: 12px 14px;
-      border: none;
-      border-radius: 10px;
-      background: #22c55e;
-      color: white;
-      font-weight: bold;
-      cursor: pointer;
-    }
-    a {
-      color: #dbeafe;
-      font-weight: bold;
-      text-decoration: none;
-    }
-  </style>
+  </script>
 </head>
 <body>
-  <div class="card">
-    <h1>🚚 SafeTrack</h1>
-    <p>Register a shipment</p>
+  <h1>Register Shipment</h1>
+  <form id="registerForm">
+    <input type="text" id="customerName" placeholder="Customer name" required />
+    <input type="tel" id="phone" placeholder="Phone number" required />
+    <input type="email" id="email" placeholder="Email" required />
+    <input type="text" id="orderId" placeholder="Order ID" required />
+    <input type="text" id="awb" placeholder="AWB number" required />
+    <button type="submit">Register</button>
+  </form>
 
-    <form id="registerForm">
-      <input type="text" id="customerName" placeholder="Customer name" required />
-      <input type="tel" id="phone" placeholder="Phone number" required />
-      <input type="email" id="email" placeholder="Email address" required />
-      <input type="text" id="orderId" placeholder="Order ID" required />
-      <input type="text" id="awb" placeholder="AWB number" required />
-      <button type="submit">Register Shipment</button>
-      <p><a href="login.html">Already have a shipment? Login</a></p>
-    </form>
-  </div>
-
-  <script>
-    const form = document.getElementById("registerForm");
-
-    form.addEventListener("submit", function (e) {
-      e.preventDefault();
-
-      const payload = {
-        customerName: document.getElementById("customerName").value.trim(),
-        phone: document.getElementById("phone").value.trim(),
-        email: document.getElementById("email").value.trim(),
-        orderId: document.getElementById("orderId").value.trim().toUpperCase(),
-        awb: document.getElementById("awb").value.trim().toUpperCase()
-      };
-
-      if (!payload.customerName || !payload.phone || !payload.email || !payload.orderId || !payload.awb) {
-        alert("Please fill all fields.");
-        return;
-      }
-
-      const saved = JSON.parse(localStorage.getItem("safetrackShipments") || "[]");
-      saved.push(payload);
-      localStorage.setItem("safetrackShipments", JSON.stringify(saved));
-
-      alert("Shipment registered successfully.");
-      window.location.href = "login.html";
-    });
-  </script>
+  <script type="module" src="./register.js"></script>
 </body>
 </html>

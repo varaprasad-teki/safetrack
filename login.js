@@ -8,21 +8,14 @@ signInWithEmailAndPassword
 } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
 
 const firebaseConfig = {
-
-apiKey: "YOUR_API_KEY",
-
-authDomain: "YOUR_AUTH_DOMAIN",
-
-projectId: "YOUR_PROJECT_ID",
-
-storageBucket: "YOUR_STORAGE_BUCKET",
-
-messagingSenderId: "YOUR_SENDER_ID",
-
-appId: "YOUR_APP_ID"
-
+  apiKey: "AIzaSyC-ShX8LvwzMBa2oletgHKVxr-CCzRkZyQ",
+  authDomain: "safetrack-cb1f2.firebaseapp.com",
+  projectId: "safetrack-cb1f2",
+  storageBucket: "safetrack-cb1f2.firebasestorage.app",
+  messagingSenderId: "997169135811",
+  appId: "1:997169135811:web:c29664c4c928b30ed72276",
+  measurementId: "G-9WXSE5JFLL"
 };
-
 const app = initializeApp(firebaseConfig);
 
 const auth = getAuth(app);
